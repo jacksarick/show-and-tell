@@ -7,10 +7,9 @@ print "server @ http://localhost:3000\n"
 
 def compose(filename, replacements = nil)
 	file = File.read(PAGE_ROOT + filename.strip)
-	file = file.gsub(/<<<([^>]+)>>>/) {|include_file| compose($1)}
-
+	file = file.gsub(/<<<([^>]+)>>>/) {|_| compose($1)}
 	if replacements != nil
-		file = file.gsub(/\{\{\{([^\}]+)\}\}\}/) {|variable| replacements[variable]}
+		file = file.gsub(/\{\{\{([^\}]+)\}\}\}/) {|_| replacements[$1.strip]}
 	end
 
 	return file
@@ -36,7 +35,7 @@ loop do
 	if request[0] == "GET"
 		case request[1]
 		when "/"
-			socket.print http_response compose("index.html")
+			socket.print http_response compose("index.html", {"var1" => "yeah it works"})
 		else
 			socket.print http_response "You asked for #{request[1]}"
 		end
