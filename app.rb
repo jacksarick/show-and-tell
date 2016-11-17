@@ -1,15 +1,24 @@
 require "socket"
+require "kramdown"
 
 PAGE_ROOT = "./pages/"
 
 server = TCPServer.new('localhost', 3000)
 print "server @ http://localhost:3000\n"
 
-def compose(filename, replacements = nil)
+def compose(filename, replacements = nil, render_md = false)
+	# Read the file
 	file = File.read(PAGE_ROOT + filename.strip)
+
+	# Load includes
 	file = file.gsub(/<<<([^>]+)>>>/) {|_| compose($1)}
-	if replacements != nil
-		file = file.gsub(/\{\{\{([^\}]+)\}\}\}/) {|_| replacements[$1.strip]}
+	
+	# Substitute replacements if dictionary included
+	file = replacements != nil ? file.gsub(/\{\{\{([^\}]+)\}\}\}/) {|_| replacements[$1.strip]} : file
+
+	# Render to markdown if told
+	if render_md
+		file = Kramdown::Document.new(file).to_html
 	end
 
 	return file
@@ -35,7 +44,10 @@ loop do
 	if request[0] == "GET"
 		case request[1]
 		when "/"
-			socket.print http_response compose("index.html", {"var1" => "yeah it works"})
+			socket.print http_response compose "index.html", {"var1" => "yeah it works"}
+		when "/test"
+			socket.print http_response compose "testing.md", nil, true
+			
 		else
 			socket.print http_response "You asked for #{request[1]}"
 		end
