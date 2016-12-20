@@ -26,6 +26,7 @@ end
 
 def http_response(response)
 	return "HTTP/1.1 200 OK\r\n" +
+		"Server: Custom (ruby)\r\n" +
 		"Content-Type: text/html\r\n" +
 		"Content-Length: #{response.bytesize}\r\n" +
 		"Connection: close\r\n" +
